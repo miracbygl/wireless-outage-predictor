@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="dashboard-container">
+    <!-- Warning Indicator (Fixed Position) -->
+    <div class="warning-indicator" id="warning-indicator" style="display: none;">
+        <span class="warning-icon"></span>
+    </div>
+
+    <!-- Header -->
+    <header class="dashboard-header">
+        <div class="logo">
+            <span class="logo-icon">📡</span>
+            <h1>Wi-Fi RSSI/RTT Monitor</h1>
+        </div>
+        <div class="header-center">
+            <div class="connection-badge" id="connection-badge">
+                <span class="status-dot"></span>
+                <span class="status-text">Bağlanıyor...</span>
+            </div>
+        </div>
+        <div class="header-right">
+            <div class="session-info">
+                <span class="session-duration" id="session-duration">00:00</span>
+                <span class="measurement-count" id="measurement-count">#0</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="dashboard-main">
+        <!-- Row 1: Gauges -->
+        <section class="gauges-section">
+            <!-- RSSI Gauge -->
+            <div class="card gauge-card">
+                <h3>RSSI</h3>
+                <div class="gauge-wrapper">
+                    <div class="gauge-container" id="rssi-gauge"></div>
+                    <div class="gauge-value" id="rssi-value">-- dBm</div>
+                </div>
+                <div class="signal-bars" id="signal-bars">
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                    <div class="bar"></div>
+                </div>
+            </div>
+
+            <!-- RTT Gauge -->
+            <div class="card gauge-card">
+                <h3>RTT</h3>
+                <div class="gauge-wrapper">
+                    <div class="gauge-container" id="rtt-gauge"></div>
+                    <div class="gauge-value" id="rtt-value">-- ms</div>
+                </div>
+                <div class="latency-info">
+                    <span>Gecikme: </span>
+                    <span id="latency-value">-- ms</span>
+                </div>
+            </div>
+
+            <!-- Quality Card -->
+            <div class="card quality-card">
+                <h3>Sinyal Kalitesi</h3>
+                <div class="quality-display">
+                    <div class="quality-text" id="quality-text">--</div>
+                    <div class="quality-score" id="quality-score">-</div>
+                </div>
+                <div class="quality-meter">
+                    <div class="quality-fill" id="quality-fill"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Row 2: Charts -->
+        <section class="charts-section">
+            <div class="card chart-card">
+                <h3>RSSI Geçmişi</h3>
+                <div class="chart-container">
+                    <canvas id="rssi-chart"></canvas>
+                </div>
+            </div>
+            <div class="card chart-card">
+                <h3>RTT Geçmişi</h3>
+                <div class="chart-container">
+                    <canvas id="rtt-chart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- Row 3: Stats and Warnings -->
+        <section class="stats-section">
+            <!-- Statistics -->
+            <div class="card stats-card">
+                <h3>İstatistikler</h3>
+                <div class="stats-tabs">
+                    <button class="tab active" data-tab="rssi">RSSI</button>
+                    <button class="tab" data-tab="rtt">RTT</button>
+                    <button class="tab" data-tab="latency">Gecikme</button>
+                </div>
+                <div class="stats-content">
+                    <table class="stats-table">
+                        <tr>
+                            <td>Minimum</td>
+                            <td id="stat-min">--</td>
+                        </tr>
+                        <tr>
+                            <td>Maksimum</td>
+                            <td id="stat-max">--</td>
+                        </tr>
+                        <tr>
+                            <td>Ortalama</td>
+                            <td id="stat-avg">--</td>
+                        </tr>
+                        <tr>
+                            <td>Medyan</td>
+                            <td id="stat-median">--</td>
+                        </tr>
+                        <tr>
+                            <td>Std Sapma</td>
+                            <td id="stat-std">--</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Quality Distribution -->
+            <div class="card distribution-card">
+                <h3>Kalite Dağılımı</h3>
+                <div class="chart-container-small">
+                    <canvas id="quality-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Warnings -->
+            <div class="card warnings-card">
+                <h3>
+                    <span>Uyarılar</span>
+                    <span class="warning-badge" id="warning-count">0</span>
+                </h3>
+                <div class="warnings-list" id="warnings-list">
+                    <div class="no-warnings">Henüz uyarı yok</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Row 4: Issues and Predictor -->
+        <section class="issues-section">
+            <!-- Connection Issues -->
+            <div class="card issues-card">
+                <h3>Bağlantı Sorunları</h3>
+                <div class="issues-grid">
+                    <div class="issue-item">
+                        <div class="issue-value" id="packet-loss">0</div>
+                        <div class="issue-label">Kayıp Paket</div>
+                        <div class="issue-rate" id="packet-loss-rate">0%</div>
+                    </div>
+                    <div class="issue-item">
+                        <div class="issue-value" id="disconnect-count">0</div>
+                        <div class="issue-label">Kopma</div>
+                    </div>
+                    <div class="issue-item">
+                        <div class="issue-value" id="total-downtime">0s</div>
+                        <div class="issue-label">Toplam Kesinti</div>
+                    </div>
+                    <div class="issue-item">
+                        <div class="issue-value" id="avg-disconnect">0s</div>
+                        <div class="issue-label">Ort. Kopma</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Predictor Status -->
+            <div class="card predictor-card">
+                <h3>Tahmin Sistemi</h3>
+                <div class="predictor-info">
+                    <div class="predictor-mode" id="predictor-mode">--</div>
+                    <div class="predictor-stats">
+                        <div class="pred-stat">
+                            <span class="pred-label">Tahmin:</span>
+                            <span class="pred-value" id="pred-total">0</span>
+                        </div>
+                        <div class="pred-stat">
+                            <span class="pred-label">Uyarı:</span>
+                            <span class="pred-value" id="pred-warnings">0</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="warning-breakdown">
+                    <div class="wb-item bilgi">
+                        <span class="wb-count" id="wb-bilgi">0</span>
+                        <span class="wb-label">Bilgi</span>
+                    </div>
+                    <div class="wb-item dikkat">
+                        <span class="wb-count" id="wb-dikkat">0</span>
+                        <span class="wb-label">Dikkat</span>
+                    </div>
+                    <div class="wb-item uyari">
+                        <span class="wb-count" id="wb-uyari">0</span>
+                        <span class="wb-label">Uyarı</span>
+                    </div>
+                    <div class="wb-item kritik">
+                        <span class="wb-count" id="wb-kritik">0</span>
+                        <span class="wb-label">Kritik</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+{% endblock %}

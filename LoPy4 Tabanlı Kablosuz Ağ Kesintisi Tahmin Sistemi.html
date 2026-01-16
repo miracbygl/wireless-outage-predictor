@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LoPy4 Tabanlı Kablosuz Ağ Kesintisi Tahmin Sistemi</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #6366f1;
+            --primary-light: #818cf8;
+            --secondary: #ec4899;
+            --accent: #06b6d4;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --dark: #0f172a;
+            --darker: #020617;
+            --card: rgba(30, 41, 59, 0.7);
+            --card-border: rgba(148, 163, 184, 0.1);
+            --text: #f1f5f9;
+            --text-muted: #94a3b8;
+            --gradient-1: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --gradient-2: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --gradient-3: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --gradient-4: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        @page {
+            size: 1920px 1080px;
+            margin: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--darker);
+            color: var(--text);
+            line-height: 1.5;
+            overflow-x: hidden;
+        }
+
+        .slide {
+            width: 1920px;
+            height: 1080px;
+            padding: 45px 70px;
+            page-break-after: always;
+            position: relative;
+            overflow: hidden;
+            background: var(--dark);
+        }
+
+        .slide::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background:
+                radial-gradient(ellipse at 20% 20%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at 80% 80%, rgba(236, 72, 153, 0.1) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 50%, rgba(6, 182, 212, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .slide:last-child {
+            page-break-after: auto;
+        }
+
+        /* Decorative elements */
+        .slide-decoration {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary), var(--secondary), var(--accent), var(--success));
+        }
+
+        .slide-number {
+            position: absolute;
+            bottom: 40px;
+            right: 60px;
+            font-size: 16px;
+            color: var(--text-muted);
+            font-weight: 500;
+            letter-spacing: 2px;
+        }
+
+        .slide-logo {
+            position: absolute;
+            bottom: 40px;
+            left: 60px;
+            font-size: 14px;
+            color: var(--text-muted);
+            font-weight: 500;
+            opacity: 0.6;
+        }
+
+        /* ==================== COVER SLIDE ==================== */
+        .cover {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            background:
+                radial-gradient(ellipse at 30% 30%, rgba(99, 102, 241, 0.2) 0%, transparent 50%),
+                radial-gradient(ellipse at 70% 70%, rgba(236, 72, 153, 0.15) 0%, transparent 50%),
+                linear-gradient(180deg, var(--darker) 0%, var(--dark) 100%);
+        }
+
+        .cover-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 50px;
+            font-size: 16px;
+            color: var(--text-muted);
+            margin-bottom: 40px;
+            backdrop-filter: blur(10px);
+        }
+
+        .cover-badge .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--success);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .cover h1 {
+            font-size: 72px;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #c7d2fe 50%, #a5b4fc 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 24px;
+            line-height: 1.1;
+            letter-spacing: -2px;
+        }
+
+        .cover h2 {
+            font-size: 28px;
+            font-weight: 400;
+            color: var(--text-muted);
+            margin-bottom: 60px;
+        }
+
+        .cover-team {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .team-member {
+            padding: 16px 28px;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 500;
+            color: var(--text);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .cover-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            color: var(--text-muted);
+            font-size: 18px;
+        }
+
+        .cover-info .instructor {
+            color: var(--primary-light);
+            font-weight: 500;
+        }
+
+        /* ==================== CONTENT SLIDES ==================== */
+        .slide-header {
+            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .slide-title {
+            font-size: 42px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+            letter-spacing: -1px;
+        }
+
+        .slide-subtitle {
+            font-size: 18px;
+            color: var(--text-muted);
+            font-weight: 400;
+        }
+
+        .content {
+            display: flex;
+            gap: 50px;
+            height: calc(100% - 130px);
+            position: relative;
+            z-index: 1;
+        }
+
+        .content-left, .content-right {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 20px;
+            backdrop-filter: blur(20px);
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title .icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .card-title .icon.purple { background: rgba(99, 102, 241, 0.2); color: var(--primary-light); }
+        .card-title .icon.pink { background: rgba(236, 72, 153, 0.2); color: var(--secondary); }
+        .card-title .icon.cyan { background: rgba(6, 182, 212, 0.2); color: var(--accent); }
+        .card-title .icon.green { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .card-title .icon.orange { background: rgba(245, 158, 11, 0.2); color: var(--warning); }
+        .card-title .icon.red { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+
+        /* Lists */
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            font-size: 15px;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+            padding-left: 22px;
+            position: relative;
+        }
+
+        li::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 8px;
+            width: 6px;
+            height: 6px;
+            background: var(--primary);
+            border-radius: 50%;
+        }
+
+        .highlight {
+            color: var(--accent);
+            font-weight: 600;
+        }
+
+        /* Code blocks */
+        .code {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            padding: 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            color: #e2e8f0;
+            overflow: hidden;
+        }
+
+        .code .comment { color: #64748b; }
+        .code .keyword { color: #f472b6; }
+        .code .string { color: #a5f3fc; }
+        .code .number { color: #fcd34d; }
+        .code .function { color: #818cf8; }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 14px;
+        }
+
+        th, td {
+            padding: 10px 14px;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--primary-light);
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        th:first-child { border-radius: 10px 0 0 10px; }
+        th:last-child { border-radius: 0 10px 10px 0; }
+
+        td {
+            color: var(--text-muted);
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        tr:last-child td { border-bottom: none; }
+
+        /* Feature boxes */
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+
+        .feature-box {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 16px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+
+        .feature-box:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .feature-box .number {
+            width: 32px;
+            height: 32px;
+            background: var(--gradient-1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .feature-box h4 {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+
+        .feature-box p {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Stats */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+        }
+
+        .stat-card {
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 28px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .stat-value {
+            font-size: 42px;
+            font-weight: 700;
+            background: var(--gradient-3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 8px;
+        }
+
+        /* Diagrams */
+        .diagram-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex: 1;
+        }
+
+        /* Warning levels */
+        .level-info { color: var(--accent); }
+        .level-caution { color: var(--warning); }
+        .level-warning { color: #fb923c; }
+        .level-critical { color: var(--danger); }
+
+        /* Flow steps */
+        .flow-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .flow-step:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            transform: translateX(4px);
+        }
+
+        .flow-step .step-num {
+            width: 36px;
+            height: 36px;
+            background: var(--gradient-1);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .flow-step .step-content h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+
+        .flow-step .step-content p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .badge-purple { background: rgba(99, 102, 241, 0.2); color: var(--primary-light); }
+        .badge-pink { background: rgba(236, 72, 153, 0.2); color: var(--secondary); }
+        .badge-cyan { background: rgba(6, 182, 212, 0.2); color: var(--accent); }
+        .badge-green { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+
+        /* Tech stack */
+        .tech-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .tech-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            background: var(--card);
+            border: 1px solid var(--card-border);
+            border-radius: 10px;
+        }
+
+        .tech-item .tech-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .tech-item h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .tech-item p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        /* Quality indicator */
+        .quality-table td:last-child {
+            font-weight: 600;
+        }
+
+        .q-excellent { color: var(--accent); }
+        .q-good { color: var(--success); }
+        .q-fair { color: var(--warning); }
+        .q-weak { color: #fb923c; }
+        .q-poor { color: var(--danger); }
+
+        /* Print styles */
+        @media print {
+            body { background: var(--dark); }
+            .slide {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+
+        /* Architecture SVG styles */
+        .arch-box {
+            fill: rgba(30, 41, 59, 0.9);
+            stroke-width: 2;
+        }
+        .arch-text-title {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            font-size: 18px;
+        }
+        .arch-text-sub {
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            fill: #94a3b8;
+        }
+        .arch-text-detail {
+            font-family: 'Inter', sans-serif;
+            font-size: 12px;
+            fill: #64748b;
+        }
+    </style>
+</head>
+<body>
+
+<!-- ==================== SAYFA 1: KAPAK ==================== -->
+<div class="slide cover">
+    <div class="slide-decoration"></div>
+
+    <div class="cover-badge">
+        <span class="dot"></span>
+        Bursa Teknik Üniversitesi &bull; Bilgisayar Mühendisliği
+    </div>
+
+    <h1>LoPy4 Tabanlı Kablosuz Ağ<br>Kesintisi Tahmin Sistemi</h1>
+    <h2>Makine Öğrenmesi ile Proaktif Ağ İzleme ve Erken Uyarı</h2>
+
+    <div class="cover-team">
+        <div class="team-member">Duha Keskin</div>
+        <div class="team-member">Miraç Bayoğlu</div>
+        <div class="team-member">Yunus Alim Avşar</div>
+        <div class="team-member">Ahmet Güldaş</div>
+        <div class="team-member">Eren Bezek</div>
+    </div>
+
+    <div class="cover-info">
+        <div class="instructor">Doç. Dr. İzzet Fatih Şentürk</div>
+        <div>BM-5 Kablosuz Ağlar &bull; 2025-2026 Güz Dönemi</div>
+    </div>
+
+    <div class="slide-number">01 / 10</div>
+</div>
+
+<!-- ==================== SAYFA 2: PROBLEM TANIMI ==================== -->
+<div class="slide">
+    <div class="slide-decoration"></div>
+
+    <div class="slide-header">
+        <h2 class="slide-title">Problem Tanımı ve Motivasyon</h2>
+        <p class="slide-subtitle">Kablosuz ağlarda kesinti problemi ve proaktif çözüm yaklaşımı</p>
+    </div>
+
+    <div class="content">
+        <div class="content-left">
+            <div class="card" style="margin-bottom: 30px;">
+                <div class="card-title">
+                    <span class="icon red">!</span>
+                    Mevcut Problemler
+                </div>
+                <ul>
+                    <li>Kablosuz ağlar fiziksel engeller ve parazitlerden etkilenir</li>
+                    <li>Bağlantı kesintileri <span class="highlight">öngörülemez</span> ve ani gerçekleşir</li>
+                    <li>Reaktif yaklaşımlar kesinti olduktan sonra müdahale eder</li>
+                    <li>Kritik uygulamalarda kesintiler yüksek maliyetlidir</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon green">✓</span>
+                    Çözüm: Proaktif Tahmin
+                </div>
+                <ul>
+                    <li>Sinyal kalitesi metrikleri sürekli izlenir</li>
+                    <li>Makine öğrenmesi ile kesinti <span class="highlight">önceden tahmin</span> edilir</li>
+                    <li>Erken uyarı ile önlem alma fırsatı sağlanır</li>
+                    <li>Sistem güvenilirliği ve kullanıcı deneyimi artar</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="content-right">
+            <div class="card-title" style="margin-bottom: 24px;">
+                <span class="icon purple">★</span>
+                Proje Hedefleri
+            </div>
+
+            <div class="feature-grid">
+                <div class="feature-box">
+                    <div class="number">1</div>
+                    <h4>Veri Toplama</h4>
+                    <p>RSSI ve RTT metriklerini gerçek zamanlı ölçme</p>
+                </div>
+                <div class="feature-box">
+                    <div class="number" style="background: var(--gradient-2);">2</div>
+                    <h4>Kesinti Tahmini</h4>
+                    <p>ML modeli ile bağlantı kesintilerini önceden tespit</p>
+                </div>
+                <div class="feature-box">
+                    <div class="number" style="background: var(--gradient-3);">3</div>
+                    <h4>Görselleştirme</h4>
+                    <p>Web dashboard ile anlık izleme ve analiz</p>
+                </div>
+                <div class="feature-box">
+                    <div class="number" style="background: var(--gradient-4);">4</div>
+                    <h4>Erken Uyarı</h4>
+                    <p>Farklı seviyelerde alarm ve bildirim sistemi</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-logo">Kablosuz Ağlar Dönem Projesi</div>
+    <div class="slide-number">02 / 10</div>
+</div>
+
+<!-- ==================== SAYFA 3: SİSTEM MİMARİSİ ==================== -->
+<div class="slide">
+    <div class="slide-decoration"></div>
+
+    <div class="slide-header">
+        <h2 class="slide-title">Sistem Mimarisi</h2>
+        <p class="slide-subtitle">Üç bileşenli IoT mimarisi ve veri akış yapısı</p>
+    </div>
+
+    <div class="diagram-container">
+        <svg width="1760" height="700" viewBox="0 0 1760 700">
+            <defs>
+                <linearGradient id="grad-purple" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#6366f1;stop-opacity:0.3" />
+                    <stop offset="100%" style="stop-color:#6366f1;stop-opacity:0.1" />
+                </linearGradient>
+                <linearGradient id="grad-pink" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#ec4899;stop-opacity:0.3" />
+                    <stop offset="100%" style="stop-color:#ec4899;stop-opacity:0.1" />
+                </linearGradient>
+                <linearGradient id="grad-cyan" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#06b6d4;stop-opacity:0.3" />
+                    <stop offset="100%" style="stop-color:#06b6d4;stop-opacity:0.1" />
+                </linearGradient>
+                <linearGradient id="grad-green" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.3" />
+                    <stop offset="100%" style="stop-color:#10b981;stop-opacity:0.1" />
+                </linearGradient>
+                <filter id="glow">
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                    <feMerge>
+                        <feMergeNode in="coloredBlur"/>
+                        <feMergeNode in="SourceGraphic"/>
+                    </feMerge>
+                </filter>
+                <marker id="arrow-purple" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+                    <path d="M2,2 L10,6 L2,10 L4,6 Z" fill="#6366f1"/>
+                </marker>
+                <marker id="arrow-cyan" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+                    <path d="M2,2 L10,6 L2,10 L4,6 Z" fill="#06b6d4"/>
+                </marker>
+                <marker id="arrow-green" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+                    <path d="M2,2 L10,6 L2,10 L4,6 Z" fill="#10b981"/>
+                </marker>
+            </defs>
+
+            <!-- Client Device -->
+            <rect x="80" y="200" width="320" height="280" rx="20" fill="url(#grad-cyan)" stroke="#06b6d4" stroke-width="2" class="arch-box"/>
+            <text x="240" y="260" text-anchor="middle" fill="#06b6d4" class="arch-text-title">CLIENT</text>
+            <text x="240" y="290" text-anchor="middle" class="arch-text-sub">LoPy4 (STA Mode)</text>
+            <line x1="120" y1="320" x2="360" y2="320" stroke="#334155" stroke-width="1"/>
+            <text x="240" y="360" text-anchor="middle" class="arch-text-detail">RSSI Ölçümü</text>
+            <text x="240" y="390" text-anchor="middle" class="arch-text-detail">RTT Hesaplama</text>
+            <text x="240" y="420" text-anchor="middle" class="arch-text-detail">1 saniye döngü</text>
+            <text x="240" y="450" text-anchor="middle" class="arch-text-detail">LED Gösterge</text>
+
+            <!-- AP Device -->
+            <rect x="560" y="200" width="320" height="280" rx="20" fill="url(#grad-pink)" stroke="#ec4899" stroke-width="2" class="arch-box"/>
+            <text x="720" y="260" text-anchor="middle" fill="#ec4899" class="arch-text-title">ACCESS POINT</text>
+            <text x="720" y="290" text-anchor="middle" class="arch-text-sub">LoPy4 (AP Mode)</text>
+            <line x1="600" y1="320" x2="840" y2="320" stroke="#334155" stroke-width="1"/>
+            <text x="720" y="360" text-anchor="middle" class="arch-text-detail">Wi-Fi: 192.168.4.1</text>
+            <text x="720" y="390" text-anchor="middle" class="arch-text-detail">Port 12345 (Client)</text>
+            <text x="720" y="420" text-anchor="middle" class="arch-text-detail">Port 12346 (PC)</text>
+            <text x="720" y="450" text-anchor="middle" class="arch-text-detail">Veri Aktarımı</text>
+
+            <!-- PC -->
+            <rect x="1040" y="140" width="320" height="200" rx="20" fill="url(#grad-purple)" stroke="#6366f1" stroke-width="2" class="arch-box"/>
+            <text x="1200" y="200" text-anchor="middle" fill="#6366f1" class="arch-text-title">PC APPLICATION</text>
+            <text x="1200" y="230" text-anchor="middle" class="arch-text-sub">Python + ML</text>
+            <line x1="1080" y1="260" x2="1320" y2="260" stroke="#334155" stroke-width="1"/>
+            <text x="1200" y="295" text-anchor="middle" class="arch-text-detail">Veri Toplama & Analiz</text>
+            <text x="1200" y="320" text-anchor="middle" class="arch-text-detail">ML Tahmin Motoru</text>
+
+            <!-- Web Dashboard -->
+            <rect x="1040" y="380" width="320" height="200" rx="20" fill="url(#grad-green)" stroke="#10b981" stroke-width="2" class="arch-box"/>
+            <text x="1200" y="440" text-anchor="middle" fill="#10b981" class="arch-text-title">WEB DASHBOARD</text>
+            <text x="1200" y="470" text-anchor="middle" class="arch-text-sub">Flask + SocketIO</text>
+            <line x1="1080" y1="500" x2="1320" y2="500" stroke="#334155" stroke-width="1"/>
+            <text x="1200" y="535" text-anchor="middle" class="arch-text-detail">Gerçek Zamanlı Grafik</text>
+            <text x="1200" y="560" text-anchor="middle" class="arch-text-detail">Uyarı Gösterimi</text>
+
+            <!-- Browser -->
+            <rect x="1440" y="380" width="240" height="200" rx="20" fill="url(#grad-cyan)" stroke="#06b6d4" stroke-width="2" class="arch-box"/>
+            <text x="1560" y="450" text-anchor="middle" fill="#06b6d4" class="arch-text-title">BROWSER</text>
+            <text x="1560" y="480" text-anchor="middle" class="arch-text-sub">Kullanıcı Arayüzü</text>
+            <text x="1560" y="530" text-anchor="middle" class="arch-text-detail">localhost:5001</text>
+
+            <!-- Arrows -->
+            <path d="M400,340 Q480,340 555,340" fill="none" stroke="#06b6d4" stroke-width="3" marker-end="url(#arrow-cyan)" filter="url(#glow)"/>
+            <text x="480" y="320" text-anchor="middle" fill="#06b6d4" font-size="14" font-family="Inter">Wi-Fi</text>
+            <text x="480" y="365" text-anchor="middle" fill="#64748b" font-size="12" font-family="Inter">RSSI, RTT</text>
+
+            <path d="M880,280 Q960,240 1035,240" fill="none" stroke="#6366f1" stroke-width="3" marker-end="url(#arrow-purple)" filter="url(#glow)"/>
+            <text x="960" y="220" text-anchor="middle" fill="#6366f1" font-size="14" font-family="Inter">TCP:12346</text>
+
+            <path d="M1200,340 L1200,375" fill="none" stroke="#10b981" stroke-width="3" marker-end="url(#arrow-green)" filter="url(#glow)"/>
+
+            <path d="M1360,480 L1435,480" fill="none" stroke="#06b6d4" stroke-width="3" marker-end="url(#arrow-cyan)" filter="url(#glow)"/>
+            <text x="1400" y="465" text-anchor="middle" fill="#06b6d4" font-size="14" font-family="Inter">WebSocket</text>
+
+            <!-- Legend -->
+            <rect x="80" y="560" width="800" height="100" rx="16" fill="rgba(30, 41, 59, 0.5)" stroke="#334155"/>
+            <text x="120" y="600" fill="#94a3b8" font-size="16" font-family="Inter" font-weight="600">Veri Akışı</text>
+            <text x="120" y="635" fill="#64748b" font-size="14" font-family="Inter">Client RSSI/RTT ölçer → AP'ye gönderir → AP veriyi PC'ye aktarır → ML tahmin yapar → Dashboard görselleştirir</text>
+        </svg>
+    </div>
+
+    <div class="slide-logo">Kablosuz Ağlar Dönem Projesi</div>
+    <div class="slide-number">03 / 10</div>
+</div>
+
+<!-- ==================== SAYFA 4: DONANIM ==================== -->
+<div class="slide">
+    <div class="slide-decoration"></div>
+
+    <div class="slide-header">
+        <h2 class="slide-title">Donanım: Pycom LoPy4</h2>
+        <p class="slide-subtitle">Çoklu bağlantı destekli IoT geliştirme kartı</p>
+    </div>
+
+    <div class="content">
+        <div class="content-left">
+            <div class="card" style="margin-bottom: 16px;">
+                <div class="card-title">
+                    <span class="icon cyan">⚡</span>
+                    Teknik Özellikler
+                </div>
+                <table>
+                    <tr><th>Özellik</th><th>Değer</th></tr>
+                    <tr><td>İşlemci</td><td>ESP32 Dual-Core 240MHz</td></tr>
+                    <tr><td>RAM</td><td>520 KB SRAM</td></tr>
+                    <tr><td>Flash</td><td>4 MB</td></tr>
+                    <tr><td>Wi-Fi</td><td>802.11 b/g/n</td></tr>
+                    <tr><td>Bluetooth</td><td>BLE 4.2</td></tr>
+                    <tr><td>LoRa</td><td>868/915 MHz</td></tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon green">✓</span>
+                    Neden LoPy4?
+                </div>
+                <ul>
+                    <li>Çoklu bağlantı (Wi-Fi, BLE, LoRa)</li>
+                    <li>MicroPython ile hızlı geliştirme</li>
+                    <li>Düşük güç tüketimi</li>
+                    <li>Gerçek zamanlı RSSI erişimi</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="content-right">
+            <div class="card-title" style="margin-bottom: 14px;">
+                <span class="icon purple">◉</span>
+                Cihaz Rolleri
+            </div>
+
+            <div class="card" style="margin-bottom: 14px; border-left: 4px solid var(--secondary);">
+                <div class="card-title">
+                    <span class="icon pink">AP</span>
+                    Access Point
+                </div>
+                <ul>
+                    <li>Wi-Fi ağı oluşturur <span class="badge badge-pink">AP Mode</span></li>
+                    <li>İki TCP sunucusu (Port 12345, 12346)</li>
+                    <li>Client verilerini PC'ye aktarır</li>
+                    <li>LED ile durum gösterir</li>
+                </ul>
+            </div>
+
+            <div class="card" style="border-left: 4px solid var(--accent);">
+                <div class="card-title">
+                    <span class="icon cyan">CL</span>
+                    Client (İstemci)
+                </div>
+                <ul>
+                    <li>AP ağına bağlanır <span class="badge badge-cyan">STA Mode</span></li>
+                    <li>RSSI değerini ölçer (Sinyal gücü)</li>
+                    <li>RTT hesaplar (Gecikme)</li>
+                    <li>Her saniye veri gönderir</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-logo">Kablosuz Ağlar Dönem Projesi</div>
+    <div class="slide-number">04 / 10</div>
+</div>
+
+<!-- ==================== SAYFA 5: CLIENT ==================== -->
+<div class="slide">
+    <div class="slide-decoration"></div>
+
+    <div class="slide-header">
+        <h2 class="slide-title">İstemci (Client) Cihazı</h2>
+        <p class="slide-subtitle">RSSI ve RTT ölçüm döngüsü</p>
+    </div>
+
+    <div class="content">
+        <div class="content-left">
+            <div class="card-title" style="margin-bottom: 14px;">
+                <span class="icon cyan">↻</span>
+                Ölçüm Döngüsü
+            </div>
+
+            <div class="flow-container">
+                <div class="flow-step">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <h4>Ağ Tarama</h4>
+                        <p>Wi-Fi ağları taranır, AP bulunur</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-num" style="background: var(--gradient-2);">2</div>
+                    <div class="step-content">
+                        <h4>RSSI Okuma</h4>
+                        <p>Sinyal gücü (dBm) değeri alınır</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-num" style="background: var(--gradient-3);">3</div>
+                    <div class="step-content">
+                        <h4>TCP Bağlantısı (T1)</h4>
+                        <p>AP'ye bağlantı açılır, zaman kaydedilir</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-num" style="background: var(--gradient-4);">4</div>
+                    <div class="step-content">
+                        <h4>Veri Gönder & Kapat (T2)</h4>
+                        <p>RSSI gönderilir, ACK alınır</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-num" style="background: linear-gradient(135deg, #f59e0b, #ef4444);">5</div>
+                    <div class="step-content">
+                        <h4>RTT Hesaplama</h4>
+                        <p>RTT = T2 - T1 (ms)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-right">
+            <div class="card" style="margin-bottom: 14px;">
+                <div class="card-title">
+                    <span class="icon purple">📶</span>
+                    RSSI Kalite Tablosu
+                </div>
+                <table class="quality-table">
+                    <tr><th>RSSI Aralığı</th><th>Kalite</th></tr>
+                    <tr><td>&gt; -50 dBm</td><td class="q-excellent">Mükemmel</td></tr>
+                    <tr><td>-50 ~ -60 dBm</td><td class="q-good">İyi</td></tr>
+                    <tr><td>-60 ~ -70 dBm</td><td class="q-fair">Orta</td></tr>
+                    <tr><td>-70 ~ -80 dBm</td><td class="q-weak">Zayıf</td></tr>
+                    <tr><td>&lt; -80 dBm</td><td class="q-poor">Çok Zayıf</td></tr>
+                </table>
+            </div>
+
+            <div class="card" style="margin-bottom: 14px;">
+                <div class="card-title">
+                    <span class="icon orange">⏱</span>
+                    RTT (Round-Trip Time)
+                </div>
+                <ul>
+                    <li>TCP handshake süresi ölçülür</li>
+                    <li>Latency ≈ RTT / 2</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon green">💡</span>
+                    LED Göstergeleri
+                </div>
+                <ul>
+                    <li><span style="color:#ef4444;">●</span> Kırmızı: Ağ aranıyor</li>
+                    <li><span style="color:#3b82f6;">●</span> Mavi: Veri gönderildi</li>
+                    <li><span style="color:#eab308;">●</span> Sarı: RSSI okunamadı</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-logo">Kablosuz Ağlar Dönem Projesi</div>
+    <div class="slide-number">05 / 10</div>
+</div>
+
+<!-- ==================== SAYFA 6: AP ==================== -->
+<div class="slide">
+    <div class="slide-decoration"></div>
+
+    <div class="slide-header">
+        <h2 class="slide-title">Erişim Noktası (AP) Cihazı</h2>
+        <p class="slide-subtitle">Çift sunucu mimarisi ve veri aktarımı</p>
+    </div>
+
+    <div class="content">
+        <div class="content-left">
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-title">
+                    <span class="icon pink">📡</span>
+                    Ağ Yapılandırması
+                </div>
+                <div class="code">
+                    <span class="comment"># Wi-Fi AP Ayarları</span><br>
+                    SSID = <span class="string">"LoPy4-Network"</span><br>
+                    Password = <span class="string">"lopy4pass123"</span><br>
+                    IP = <span class="string">"192.168.4.1"</span><br>
+                    Channel = <span class="number">6</span>
+                </div>
+            </div>
+
+            <div class="card-title" style="margin-bottom: 16px;">
+                <span class="icon purple">⚡</span>
+                Çift Sunucu Mimarisi
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                <div class="card" style="border-top: 3px solid var(--accent);">
+                    <h4 style="color: var(--accent); margin-bottom: 12px;">Port 12345</h4>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 8px;">Client Sunucusu</p>
+                    <ul style="font-size: 14px;">
+                        <li>Client verisi alır</li>
+                        <li>RSSI:değer formatı</li>
+                        <li>ACK yanıtı döner</li>
+                    </ul>
+                </div>
+                <div class="card" style="border-top: 3px solid var(--primary);">
+                    <h4 style="color: var(--primary-light); margin-bottom: 12px;">Port 12346</h4>
+                    <p style="color: var(--text-muted); font-size: 14px; margin-bottom: 8px;">PC Sunucusu</p>
+                    <ul style="font-size: 14px;">
+                        <li>PC'ye veri aktarır</li>
+                        <li>STATUS mesajları</li>
+                        <li>DATA:rssi,rtt,count</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-right">
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-title">
+                    <span class="icon cyan">↔</span>
+                    Veri Akış Diyagramı
+                </div>
+                <svg width="100%" height="200" viewBox="0 0 600 200">
+                    <rect x="30" y="60" width="140" height="80" rx="12" fill="rgba(6, 182, 212, 0.2)" stroke="#06b6d4" stroke-width="2"/>
+                    <text x="100" y="100" text-anchor="middle" fill="#06b6d4" font-size="16" font-weight="600">Client</text>
+                    <text x="100" y="120" text-anchor="middle" fill="#64748b" font-size="12">:12345</text>
+
+                    <rect x="230" y="40" width="140" height="120" rx="12" fill="rgba(236, 72, 153, 0.2)" stroke="#ec4899" stroke-width="2"/>
+                    <text x="300" y="80" text-anchor="middle" fill="#ec4899" font-size="16" font-weight="600">AP</text>
+                    <text x="300" y="100" text-anchor="middle" fill="#64748b" font-size="12">Relay</text>
+                    <line x1="240" y1="115" x2="360" y2="115" stroke="#334155"/>
+                    <text x="300" y="140" text-anchor="middle" fill="#94a3b8" font-size="11">Status Tracker</text>
+
+                    <rect x="430" y="60" width="140" height="80" rx="12" fill="rgba(99, 102, 241, 0.2)" stroke="#6366f1" stroke-width="2"/>
+                    <text x="500" y="100" text-anchor="middle" fill="#6366f1" font-size="16" font-weight="600">PC</text>
+                    <text x="500" y="120" text-anchor="middle" fill="#64748b" font-size="12">:12346</text>
+
+                    <path d="M170,95 L225,95" fill="none" stroke="#06b6d4" stroke-width="2" marker-end="url(#arrow-cyan)"/>
+                    <text x="198" y="85" text-anchor="middle" fill="#64748b" font-size="10">DATA</text>
+
+                    <path d="M370,95 L425,95" fill="none" stroke="#6366f1" stroke-width="2" marker-end="url(#arrow-purple)"/>
+                    <text x="398" y="85" text-anchor="middle" fill="#64748b" font-size="10">RELAY</text>
+                </svg>
+            </div>
+
+            <div class="card" style="margin-bottom: 24px;">
+                <div class="card-title">
+                    <span class="icon green">💡</span>
+                    LED Göstergeleri
+                </div>
+                <ul>
+                    <li><span style="color:#10b981;">●</span> Yeşil: Client bağlı, veri akışı aktif</li>
+                    <li><span style="color:#f97316;">●</span> Turuncu: Bağlantı yok / veri gecikti</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon orange">⏰</span>
+                    Timeout Mekanizması
+                </div>
+                <p style="color: var(--text-muted);">Client verisi <span class="highlight">5 saniye</span> gelmezse:</p>
+                <ul style="margin-top: 8px;">
+                    <li>STATUS:DISCONNECTED mesajı gönderilir</li>
+                    <li>LED turuncu yanar</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-logo">Kablosuz Ağlar Dönem Projesi</div>
+    <div class="slide-number">06 / 10</div>
+</div>
+
+<!-- ==================== SAYFA 7: ML MODELİ ==================== -->
+<div class="slide">
+    <div class="slide-decoration"></div>
+
+    <div class="slide-header">
+        <h2 class="slide-title">Makine Öğrenmesi Modeli</h2>
+        <p class="slide-subtitle">Hibrit tahmin sistemi: Kural tabanlı + Random Forest</p>
+    </div>
+
+    <div class="content">
+        <div class="content-left">
+            <div class="card" style="margin-bottom: 14px;">
+                <div class="card-title">
+                    <span class="icon purple">🧠</span>
+                    Hibrit Tahmin Sistemi
+                </div>
+                <svg width="100%" height="180" viewBox="0 0 500 180">
+                    <rect x="175" y="5" width="150" height="35" rx="8" fill="rgba(6, 182, 212, 0.2)" stroke="#06b6d4" stroke-width="2"/>
+                    <text x="250" y="28" text-anchor="middle" fill="#06b6d4" font-size="13" font-weight="600">Gelen Veri</text>
+
+                    <line x1="250" y1="40" x2="250" y2="55" stroke="#64748b" stroke-width="2"/>
+                    <line x1="250" y1="55" x2="125" y2="70" stroke="#64748b" stroke-width="2"/>
+                    <line x1="250" y1="55" x2="375" y2="70" stroke="#64748b" stroke-width="2"/>
+
+                    <rect x="25" y="70" width="200" height="40" rx="8" fill="rgba(245, 158, 11, 0.2)" stroke="#f59e0b" stroke-width="2"/>
+                    <text x="125" y="95" text-anchor="middle" fill="#f59e0b" font-size="12" font-weight="600">Kural Tabanlı</text>
+
+                    <rect x="275" y="70" width="200" height="40" rx="8" fill="rgba(168, 85, 247, 0.2)" stroke="#a855f7" stroke-width="2"/>
+                    <text x="375" y="95" text-anchor="middle" fill="#a855f7" font-size="12" font-weight="600">Random Forest</text>
+
+                    <line x1="125" y1="110" x2="125" y2="125" stroke="#64748b" stroke-width="2"/>
+                    <line x1="375" y1="110" x2="375" y2="125" stroke="#64748b" stroke-width="2"/>
+                    <line x1="125" y1="125" x2="375" y2="125" stroke="#64748b" stroke-width="2"/>
+                    <line x1="250" y1="125" x2="250" y2="140" stroke="#64748b" stroke-width="2"/>
+
+                    <rect x="150" y="140" width="200" height="35" rx="8" fill="rgba(239, 68, 68, 0.2)" stroke="#ef4444" stroke-width="2"/>
+                    <text x="250" y="162" text-anchor="middle" fill="#ef4444" font-size="13" font-weight="600">Birleşik Uyarı</text>
+                </svg>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon cyan">📊</span>
+                    13 Özellik (Feature)
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div>
+                        <p style="color: var(--accent); font-weight: 600; margin-bottom: 6px; font-size: 13px;">RSSI Özellikleri</p>
+                        <ul style="font-size: 12px;">
+                            <li>rssi_mean, rssi_std</li>
+                            <li>rssi_min, rssi_max</li>
+                            <li>rssi_trend, rssi_delta</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <p style="color: var(--warning); font-weight: 600; margin-bottom: 6px; font-size: 13px;">RTT & Kalite</p>
+                        <ul style="font-size: 12px;">
+                            <li>rtt_mean, rtt_std</li>
+                            <li>rtt_min, rtt_max, rtt_trend</li>
+                            <li>quality_mean, quality_std</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-right">
+            <div class="card" style="margin-bottom: 14px;">
+                <div class="card-title">
+                    <span class="icon green">⚙️</span>
+                    Random Forest Parametreleri
+                </div>
+                <div class="code">
+                    n_estimators = <span class="number">100</span>  <span class="comment"># Ağaç sayısı</span><br>
+                    max_depth = <span class="number">10</span><br>
+                    min_samples_split = <span class="number">5</span><br>
+                    class_weight = <span class="string">"balanced"</span>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 14px;">
+                <div class="card-title">
+                    <span class="icon orange">📏</span>
+                    Kural Tabanlı Eşikler
+                </div>
+                <table style="font-size: 13px;">
+                    <tr><th>Metrik</th><th>Dikkat</th><th>Uyarı</th><th>Kritik</th></tr>
+                    <tr><td>RSSI</td><td>-60 dBm</td><td>-75 dBm</td><td>-85 dBm</td></tr>
+                    <tr><td>RTT</td><td>100 ms</td><td>200 ms</td><td>—</td></tr>
+                    <tr><td>Trend</td><td>-3 dB/s</td><td>-5 dB/s</td><td>—</td></tr>
+                </table>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon red">⚠️</span>
+                    Uyarı Seviyeleri
+                </div>
+                <ul style="font-size: 13px;">
+                    <li class="level-info">[i] INFO — Bilgilendirme</li>
+                    <li class="level-caution">[!] DİKKAT — Dikkat edilmeli</li>
+                    <li class="level-warning">[!!] UYARI — Müdahale gerekebilir</li>
+                    <li class="level-critical">[!!!] KRİTİK — Acil müdahale</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-logo">Kablosuz Ağlar Dönem Projesi</div>
+    <div class="slide-number">07 / 10</div>
+</div>
+
+<!-- ==================== SAYFA 8: WEB DASHBOARD ==================== -->
+<div class="slide">
+    <div class="slide-decoration"></div>
+
+    <div class="slide-header">
+        <h2 class="slide-title">Web Dashboard</h2>
+        <p class="slide-subtitle">Gerçek zamanlı izleme ve görselleştirme arayüzü</p>
+    </div>
+
+    <div class="content">
+        <div class="content-left">
+            <div class="card-title" style="margin-bottom: 20px;">
+                <span class="icon purple">🛠</span>
+                Teknoloji Stack
+            </div>
+
+            <div class="tech-grid" style="margin-bottom: 30px;">
+                <div class="tech-item">
+                    <div class="tech-icon" style="background: rgba(99, 102, 241, 0.2); color: var(--primary-light);">🐍</div>
+                    <div>
+                        <h4>Flask</h4>
+                        <p>Python web framework</p>
+                    </div>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-icon" style="background: rgba(236, 72, 153, 0.2); color: var(--secondary);">⚡</div>
+                    <div>
+                        <h4>SocketIO</h4>
+                        <p>Gerçek zamanlı iletişim</p>
+                    </div>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-icon" style="background: rgba(6, 182, 212, 0.2); color: var(--accent);">📊</div>
+                    <div>
+                        <h4>Chart.js</h4>
+                        <p>Grafik görselleştirme</p>
+                    </div>
+                </div>
+                <div class="tech-item">
+                    <div class="tech-icon" style="background: rgba(16, 185, 129, 0.2); color: var(--success);">🔌</div>
+                    <div>
+                        <h4>WebSocket</h4>
+                        <p>Anlık veri akışı</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon cyan">🔗</span>
+                    REST API Endpoints
+                </div>
+                <div class="code" style="font-size: 13px;">
+                    <span class="function">GET</span> /           <span class="comment"># Dashboard sayfası</span><br>
+                    <span class="function">GET</span> /api/stats  <span class="comment"># Tüm istatistikler</span><br>
+                    <span class="function">GET</span> /api/status <span class="comment"># Bağlantı durumu</span><br>
+                    <span class="function">GET</span> /api/history <span class="comment"># Geçmiş veriler</span><br>
+                    <span class="function">GET</span> /api/warnings <span class="comment"># Uyarı listesi</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-right">
+            <div class="card" style="padding: 20px;">
+                <div class="card-title" style="margin-bottom: 16px;">
+                    <span class="icon green">🖥</span>
+                    Dashboard Önizleme
+                </div>
+                <svg width="100%" height="340" viewBox="0 0 700 340">
+                    <!-- Browser frame -->
+                    <rect x="0" y="0" width="700" height="340" rx="12" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+
+                    <!-- Browser bar -->
+                    <rect x="0" y="0" width="700" height="40" rx="12" fill="#1e293b"/>
+                    <rect x="0" y="28" width="700" height="12" fill="#1e293b"/>
+                    <circle cx="20" cy="20" r="6" fill="#ef4444"/>
+                    <circle cx="42" cy="20" r="6" fill="#f59e0b"/>
+                    <circle cx="64" cy="20" r="6" fill="#10b981"/>
+                    <rect x="100" y="12" width="200" height="16" rx="4" fill="#0f172a"/>
+                    <text x="120" y="24" fill="#64748b" font-size="10">localhost:5001</text>
+
+                    <!-- Header -->
+                    <rect x="15" y="55" width="670" height="35" rx="6" fill="#1e293b"/>
+                    <text x="30" y="78" fill="#06b6d4" font-size="14" font-weight="600">Dashboard - Kablosuz Ağ İzleme</text>
+                    <circle cx="660" cy="72" r="8" fill="#10b981"/>
+
+                    <!-- Charts -->
+                    <rect x="15" y="100" width="325" height="110" rx="8" fill="#1e293b"/>
+                    <text x="30" y="120" fill="#94a3b8" font-size="11">RSSI Grafiği</text>
+                    <polyline points="30,180 70,165 110,170 150,155 190,145 230,140 270,130 310,125" fill="none" stroke="#06b6d4" stroke-width="2"/>
+
+                    <rect x="360" y="100" width="325" height="110" rx="8" fill="#1e293b"/>
+                    <text x="375" y="120" fill="#94a3b8" font-size="11">RTT Grafiği</text>
+                    <polyline points="375,170 415,165 455,175 495,160 535,165 575,155 615,160 655,150" fill="none" stroke="#f59e0b" stroke-width="2"/>
+
+                    <!-- Stats -->
+                    <rect x="15" y="220" width="160" height="70" rx="8" fill="#1e293b"/>
+                    <text x="95" y="248" text-anchor="middle" fill="#94a3b8" font-size="10">RSSI</text>
+                    <text x="95" y="275" text-anchor="middle" fill="#06b6d4" font-size="24" font-weight="700">-45</text>
+
+                    <rect x="185" y="220" width="160" height="70" rx="8" fill="#1e293b"/>
+                    <text x="265" y="248" text-anchor="middle" fill="#94a3b8" font-size="10">RTT</text>
+                    <text x="265" y="275" text-anchor="middle" fill="#f59e0b" font-size="24" font-weight="700">23ms</text>
+
+                    <rect x="355" y="220" width="160" height="70" rx="8" fill="#1e293b"/>
+                    <text x="435" y="248" text-anchor="middle" fill="#94a3b8" font-size="10">Kalite</text>
+                    <text x="435" y="272" text-anchor="middle" fill="#10b981" font-size="16" font-weight="600">Mükemmel</text>
+
+                    <rect x="525" y="220" width="160" height="70" rx="8" fill="#1e293b"/>
+                    <text x="605" y="248" text-anchor="middle" fill="#94a3b8" font-size="10">Ölçüm</text>
+                    <text x="605" y="275" text-anchor="middle" fill="#a855f7" font-size="24" font-weight="700">1247</text>
+
+                    <!-- Warning bar -->
+                    <rect x="15" y="300" width="670" height="30" rx="6" fill="#1e293b"/>
+                    <text x="30" y="320" fill="#94a3b8" font-size="10">Uyarılar:</text>
+                    <text x="90" y="320" fill="#f59e0b" font-size="10">[!] Sinyal zayıflıyor (-3dB/s)</text>
+                    <text x="620" y="320" fill="#64748b" font-size="9">12:34:56</text>
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-logo">Kablosuz Ağlar Dönem Projesi</div>
+    <div class="slide-number">08 / 10</div>
+</div>
+
+<!-- ==================== SAYFA 9: VERİ AKIŞI ==================== -->
+<div class="slide">
+    <div class="slide-decoration"></div>
+
+    <div class="slide-header">
+        <h2 class="slide-title">Veri Akışı ve Protokol</h2>
+        <p class="slide-subtitle">Uçtan uca iletişim protokolü ve mesaj formatları</p>
+    </div>
+
+    <div class="content">
+        <div class="content-left">
+            <div class="card-title" style="margin-bottom: 12px;">
+                <span class="icon cyan">📡</span>
+                Uçtan Uca Veri Akışı
+            </div>
+
+            <div class="flow-container">
+                <div class="flow-step">
+                    <div class="step-num">1</div>
+                    <div class="step-content">
+                        <h4>Client: RSSI Ölçümü</h4>
+                        <p>Sinyal gücü okunur</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-num" style="background: var(--gradient-2);">2</div>
+                    <div class="step-content">
+                        <h4>Client → AP: Veri Gönderimi</h4>
+                        <p>TCP ile gönderilir</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-num" style="background: var(--gradient-3);">3</div>
+                    <div class="step-content">
+                        <h4>AP: RTT Hesaplama</h4>
+                        <p>Handshake süresi</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-num" style="background: var(--gradient-4);">4</div>
+                    <div class="step-content">
+                        <h4>AP → PC: Veri Aktarımı</h4>
+                        <p>DATA:rssi,rtt,count</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-num" style="background: linear-gradient(135deg, #a855f7, #ec4899);">5</div>
+                    <div class="step-content">
+                        <h4>PC: ML Tahmin</h4>
+                        <p>Özellik çıkarımı</p>
+                    </div>
+                </div>
+                <div class="flow-step">
+                    <div class="step-num" style="background: linear-gradient(135deg, #10b981, #06b6d4);">6</div>
+                    <div class="step-content">
+                        <h4>Dashboard: Görselleştirme</h4>
+                        <p>WebSocket güncelleme</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="content-right">
+            <div class="card" style="margin-bottom: 12px;">
+                <div class="card-title">
+                    <span class="icon purple">📨</span>
+                    Mesaj Formatları
+                </div>
+
+                <p style="color: var(--accent); font-weight: 600; margin: 8px 0 6px; font-size: 13px;">Client → AP (Port 12345)</p>
+                <div class="code" style="margin-bottom: 10px;">
+                    RSSI:<span class="number">-45</span>
+                </div>
+
+                <p style="color: var(--secondary); font-weight: 600; margin-bottom: 6px; font-size: 13px;">AP → PC (Port 12346)</p>
+                <div class="code">
+                    STATUS:<span class="string">CONNECTED</span><br>
+                    DATA:<span class="number">-45</span>,<span class="number">23</span>,<span class="number">1247</span>
+                </div>
+            </div>
+
+            <div class="card" style="margin-bottom: 12px;">
+                <div class="card-title">
+                    <span class="icon green">📁</span>
+                    CSV Veri Şeması
+                </div>
+                <div class="code" style="font-size: 11px;">
+                    session_id, timestamp, measurement_id,<br>
+                    event_type, rssi, rtt, latency, quality
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon orange">⏱</span>
+                    Zamanlama
+                </div>
+                <table style="font-size: 13px;">
+                    <tr><th>Bileşen</th><th>Periyot</th></tr>
+                    <tr><td>Client ölçümü</td><td>1 saniye</td></tr>
+                    <tr><td>AP relay</td><td>Anlık</td></tr>
+                    <tr><td>ML işleme</td><td>&lt; 10 ms</td></tr>
+                    <tr><td>Timeout</td><td>5 saniye</td></tr>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-logo">Kablosuz Ağlar Dönem Projesi</div>
+    <div class="slide-number">09 / 10</div>
+</div>
+
+<!-- ==================== SAYFA 10: SONUÇ ==================== -->
+<div class="slide">
+    <div class="slide-decoration"></div>
+
+    <div class="slide-header">
+        <h2 class="slide-title">Sonuç ve Demo</h2>
+        <p class="slide-subtitle">Projenin katkıları ve canlı demonstrasyon</p>
+    </div>
+
+    <div class="content">
+        <div class="content-left">
+            <div class="card-title" style="margin-bottom: 12px;">
+                <span class="icon green">✓</span>
+                Projenin Katkıları
+            </div>
+
+            <div class="feature-grid" style="margin-bottom: 16px;">
+                <div class="feature-box" style="padding: 12px;">
+                    <div class="number">1</div>
+                    <h4 style="font-size: 13px;">Proaktif Kesinti Tahmini</h4>
+                    <p style="font-size: 11px;">Bağlantı kesilmeden önce erken uyarı</p>
+                </div>
+                <div class="feature-box" style="padding: 12px;">
+                    <div class="number" style="background: var(--gradient-2);">2</div>
+                    <h4 style="font-size: 13px;">Hibrit ML Yaklaşımı</h4>
+                    <p style="font-size: 11px;">Kural tabanlı + ML kombinasyonu</p>
+                </div>
+                <div class="feature-box" style="padding: 12px;">
+                    <div class="number" style="background: var(--gradient-3);">3</div>
+                    <h4 style="font-size: 13px;">Gerçek Zamanlı İzleme</h4>
+                    <p style="font-size: 11px;">Web dashboard ile görselleştirme</p>
+                </div>
+                <div class="feature-box" style="padding: 12px;">
+                    <div class="number" style="background: var(--gradient-4);">4</div>
+                    <h4 style="font-size: 13px;">Tam Stack Çözüm</h4>
+                    <p style="font-size: 11px;">Donanım + Yazılım + ML</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span class="icon cyan">🎯</span>
+                    Kullanım Alanları
+                </div>
+                <ul>
+                    <li>IoT ağ izleme sistemleri</li>
+                    <li>Endüstriyel kablosuz uygulamalar</li>
+                    <li>Akıllı bina yönetimi</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="content-right">
+            <div class="card" style="margin-bottom: 14px;">
+                <div class="card-title">
+                    <span class="icon purple">🚀</span>
+                    Gelecek Geliştirmeler
+                </div>
+                <ul>
+                    <li>LoRa protokolü ve çoklu client desteği</li>
+                    <li>Derin öğrenme modelleri (LSTM)</li>
+                    <li>Mobil uygulama ve bulut entegrasyonu</li>
+                </ul>
+            </div>
+
+            <div class="card" style="margin-bottom: 14px;">
+                <div class="card-title">
+                    <span class="icon orange">🎬</span>
+                    Demo Senaryosu
+                </div>
+                <ol style="list-style: decimal; padding-left: 20px; font-size: 14px;">
+                    <li style="padding-left: 4px; margin-bottom: 4px;">AP ve Client cihazlarını başlat</li>
+                    <li style="padding-left: 4px; margin-bottom: 4px;">PC uygulaması + Web dashboard aç</li>
+                    <li style="padding-left: 4px; margin-bottom: 4px;">Canlı veri akışını izle</li>
+                    <li style="padding-left: 4px; margin-bottom: 4px;">Kesinti simülasyonu ve uyarı gözlemi</li>
+                </ol>
+            </div>
+
+            <div class="card" style="text-align: center; background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(236, 72, 153, 0.2)); padding: 16px;">
+                <h3 style="font-size: 26px; color: var(--text); margin-bottom: 8px;">Teşekkürler!</h3>
+                <p style="font-size: 16px; color: var(--text-muted);">Sorularınız için hazırız</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="slide-logo">Kablosuz Ağlar Dönem Projesi</div>
+    <div class="slide-number">10 / 10</div>
+</div>
+
+</body>
+</html>
