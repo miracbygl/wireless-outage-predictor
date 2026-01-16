@@ -1,4 +1,4 @@
-# Proje Grubu - 2
+
 
 # LoPy4 Tabanlı Kablosuz Ağ Kesintisi Tahmin Sistemi
 
